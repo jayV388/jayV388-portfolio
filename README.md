@@ -13,7 +13,7 @@ Welcome to my portfolio! Here you'll find various data analysis and visualizatio
 - **Key Features**: 8 interactive visualizations, correlation analysis, continental comparison
 - **Status**: ✅ Complete
 
-[View COVID-19 Analysis →](./covid_analysis/)
+[View COVID-19 Analysis →](https://github.com/jayV388/jayV388-portfolio/tree/main/Projects/covid_analysis/)
 
 ---
 
