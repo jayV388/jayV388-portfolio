@@ -50,7 +50,7 @@ SELECT
         ELSE TRIM(neighborhood_group)
     END AS neighborhood_group
 
-    TRIM(neighborhood) AS neighborhood.ABORT
+    TRIM(neighborhood) AS neighborhood,
 
     lattitude,
     longitude,
@@ -87,19 +87,39 @@ SELECT
 
     construction_year,
 
-    CAST(
-        REPLACE(
-            REPLACE(TRIM(price), '$', '')
-            ',', ''
-        ) AS REAL
-    ) AS price,
+    CASE
+        WHEN CAST(
+            REPLACE(
+                REPLACE(TRIM(price), '$', ''),
+                ',', ''
+            ) AS REAL
+        ) > 0
 
-    CAST(
-        REPLACE(
-            REPLACE(TRIM(service_fee), '$', '')
-            ',', ''
-        ) AS REAL
-    ) AS service_fee,
+        THEN CAST(
+            REPLACE(
+                REPLACE(TRIM(price), '$', ''),
+                ',', ''
+            ) AS REAL
+        )
+    ELSE NULL
+END AS price,
+
+    CASE
+        WHEN CAST(
+            REPLACE(
+                REPLACE(TRIM(service_fee), '$', ''),
+                ',', ''
+            ) AS REAL
+        ) >= 0
+
+        THEN CAST(
+            REPLACE(
+                REPLACE(TRIM(service_fee), '$', ''),
+                ',', ''
+            ) AS REAL
+        )
+    ELSE NULL
+END AS service_fee,
 
     minimum_nights,
     number_of_reviews,
