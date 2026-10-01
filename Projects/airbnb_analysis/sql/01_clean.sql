@@ -30,30 +30,49 @@ SELECT
     TRIM(host_name) AS host_name,
 
     CASE
-        WHEN LOWER(TRIM(neighborhood_group)) IN
+        WHEN LOWER(TRIM(neighbourhood_group)) IN
             ('brooklin', 'brookln', 'brooklyn')
             THEN 'Brooklyn'
         
-        WHEN LOWER(TRIM(neighborhood_group)) IN
+        WHEN LOWER(TRIM(neighbourhood_group)) IN
             ('manhatan', 'manhattan')
             THEN 'Manhattan'
         
-        WHEN LOWER(TRIM(neighborhood_group)) = 'bronx'
+        WHEN LOWER(TRIM(neighbourhood_group)) = 'bronx'
             THEN 'Bronx'
         
-        WHEN LOWER(TRIM(neighborhood_group)) = 'queens'
+        WHEN LOWER(TRIM(neighbourhood_group)) = 'queens'
             THEN 'Queens'
         
-        WHEN LOWER(TRIM(neighborhood_group)) = 'staten island'
+        WHEN LOWER(TRIM(neighbourhood_group)) = 'staten island'
             THEN 'Staten Island'
         
-        ELSE TRIM(neighborhood_group)
-    END AS neighborhood_group
+        ELSE TRIM(neighbourhood_group)
+    END AS neighbourhood_group,
 
-    TRIM(neighborhood) AS neighborhood,
+    TRIM(neighbourhood) AS neighbourhood,
 
-    lattitude,
-    longitude,
+    CASE
+        WHEN latitude IS NOT NULL
+            AND longitude IS NOT NULL
+            AND (
+                latitude NOT BETWEEN 40.4 AND 41.0
+                OR longitude NOT BETWEEN -74.3 AND -73.6
+            )
+            THEN NULL
+        ELSE latitude
+    END AS latitude,
+
+    CASE
+        WHEN latitude IS NOT NULL
+            AND longitude IS NOT NULL
+            AND (
+                latitude NOT BETWEEN 40.4 AND 41.0
+                OR longitude NOT BETWEEN -74.3 AND -73.6
+            )
+            THEN NULL
+        ELSE longitude
+    END AS longitude,
 
     CASE
         WHEN LOWER(TRIM(instant_bookable AS TEXT)))
@@ -85,7 +104,12 @@ SELECT
         ELSE TRIM(room_type)
     END AS room_type,
 
-    construction_year,
+    CASE
+        WHEN construction_year BETWEEN 100
+            AND CAST(strftime('%Y', 'now') AS INTEGER)
+            THEN construction_year
+        ELSE NULL
+    END AS construction_year,
 
     CASE
         WHEN CAST(
@@ -100,9 +124,9 @@ SELECT
                 REPLACE(TRIM(price), '$', ''),
                 ',', ''
             ) AS REAL
-        )
-    ELSE NULL
-END AS price,
+            )
+        ELSE NULL
+    END AS price,
 
     CASE
         WHEN CAST(
@@ -118,15 +142,46 @@ END AS price,
                 ',', ''
             ) AS REAL
         )
-    ELSE NULL
-END AS service_fee,
+        ELSE NULL
+    END AS service_fee,
 
-    minimum_nights,
-    number_of_reviews,
+    CASE
+        WHEN minimum_nights BETWEEN 1 AND 365
+            THEN minimum_nights
+        ELSE NULL
+    END AS minimum_nights,
+
+        CASE
+        WHEN number_of_reviews >= 0
+            THEN number_of_reviews
+        ELSE NULL
+    END AS number_of_reviews,
+
     last_review,
-    reviews_per_month,
-    review_per_number,
-    calculated_host_listing_count,
-    abandonment_365
+        
+    CASE
+        WHEN reivews_per_month >= 0
+            THEN reivews_per_month
+        ELSE NULL
+    END AS review_per_number,
+
+    CASE
+        WHEN review_rate_number BETWEEN 1 AND 5
+            THEN review_rate_number
+        ELSE NULL
+    END AS review_rate_number,
+
+    CASE
+        WHEN calculated_host_listing_count >= 1
+            THEN calculated_host_listing_count
+        ELSE NULL
+    END AS calculated_host_listing_count,
+
+    CASE
+        WHEN availability_365 BETWEEN 0 AND 365
+            THEN availability_365
+        ELSE NULL
+    END AS availability_365
+
 
 FROM airbnb_raw;
