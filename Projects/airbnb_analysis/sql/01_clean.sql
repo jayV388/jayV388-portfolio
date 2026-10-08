@@ -9,10 +9,12 @@ AIRBNB DATA CLEANING
 
 */
 
+-- rebuild the clean table from scratch on each run
 DROP TABLE IF EXISTS airbnb_clean;
 
 CREATE TABLE airbnb_clean AS
 
+-- duplicate removal: drop rows that are exact copies across all columns
 WITH deduped_raw AS (
     SELECT DISTINCT *
     FROM airbnb_raw
@@ -21,10 +23,12 @@ SELECT
 
     id,
 
+    --text cleaning: strip leading whitespace
     TRIM(listing_name) AS listing_name,
 
     host_id,
 
+    --catrgorical standardization: keep only valid verification values; others become NULL
     CASE
         WHEN LOWER(TRIM(host_identity_verified)) = 'verified'
             THEN 'verified'
@@ -37,6 +41,7 @@ SELECT
 
     TRIM(host_name) AS host_name,
 
+    -- categorical standardization: fix borough misspellings and apply consistent capitalization
     CASE
         WHEN LOWER(TRIM(neighbourhood_group)) IN
             ('brooklin', 'brookln', 'brooklyn')
@@ -60,6 +65,7 @@ SELECT
 
     TRIM(neighbourhood) AS neighbourhood,
 
+    -- coordinate validation: NULL out coordinates that fall outside the NYC
     CASE
         WHEN latitude IS NOT NULL
             AND longitude IS NOT NULL
@@ -82,6 +88,7 @@ SELECT
         ELSE longitude
     END AS longitude,
 
+    -- categorical standardization: convert boolean-like text to 1/10; unrecognized values become NULL
     CASE
         WHEN LOWER(TRIM(CAST(instant_bookable AS TEXT)))
             IN ('true', 't', 'yes', '1')
@@ -96,6 +103,7 @@ SELECT
 
     LOWER(TRIM(cancellation_policy)) AS cancellation_policy,
 
+    -- categorical standarization: apply consistent capitalization to room types
     CASE
         WHEN LOWER(TRIM(room_type)) = 'entire home/apt'
             THEN 'Entire Home/Apt'
@@ -112,6 +120,7 @@ SELECT
         ELSE TRIM(room_type)
     END AS room_type,
 
+    -- numerical validation: keep construction years betweem 1800 and the current year
     CASE
         WHEN construction_year BETWEEN 1800
             AND CAST(strftime('%Y', 'now') AS INTEGER)
@@ -119,6 +128,7 @@ SELECT
         ELSE NULL
     END AS construction_year,
 
+    -- price cleaning: remove '$' and commas, convert to numner, keep only positive values
     CASE
         WHEN price IS NULL OR TRIM(price) = ''
             THEN NULL
@@ -138,6 +148,7 @@ SELECT
         ELSE NULL
     END AS price,
 
+    -- service fee cleaning: same as price, but zero is allowed
     CASE
         WHEN service_fee IS NULL OR TRIM(service_fee) = ''
             THEN NULL
@@ -157,6 +168,7 @@ SELECT
         ELSE NULL
     END AS service_fee,
 
+    -- numeric validation: keep values within realistic ranges; out-of-range values become NULL
     CASE
         WHEN minimum_nights BETWEEN 1 AND 365
             THEN minimum_nights
@@ -170,7 +182,8 @@ SELECT
     END AS number_of_reviews,
 
     last_review,
-        
+
+    -- missing value handling: listings with zero reviews get 0 reviews per month instead of NULL
     CASE
         WHEN reviews_per_month IS NULL
             AND number_of_reviews = 0
@@ -181,6 +194,7 @@ SELECT
         ELSE NULL
     END AS reviews_per_month,
 
+    --numerical validation: ratings must be between 1-5, host listing counts at least 1, availability 0-365 days
     CASE
         WHEN review_rate_number BETWEEN 1 AND 5
             THEN review_rate_number
