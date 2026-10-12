@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Airbnb project
+Projects/airbnb_analysis/database/airbnb.db
+Projects/airbnb_analysis/data/raw/Airbnb_Open_Data.csv
