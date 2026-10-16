@@ -220,3 +220,4 @@ __marimo__/
 # Airbnb project
 Projects/airbnb_analysis/database/airbnb.db
 Projects/airbnb_analysis/data/raw/Airbnb_Open_Data.csv
+Projects/airbnb_analysis/data/tableau/listings_clean.csv
