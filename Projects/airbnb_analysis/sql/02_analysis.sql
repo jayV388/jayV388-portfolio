@@ -62,3 +62,30 @@ ORDER BY MIN(calculated_host_listings_count);
 Findings: While average rates are about the same across the same portfolio sizes ($621-$627), the supply of Airbnb
 is concentrated among smaller hosts, with 1 listing (57.5%) and 2-5 listings (30.3%) making up 88% of the total.
 */
+
+
+/*
+Q2. Price by Borough and Room Type
+
+Which boroughs and room types combinations have the 
+highest average price, and which have the lowest?
+*/
+
+SELECT
+    neighbourhood_group,
+    room_type,
+    ROUND(AVG(price), 2) AS avg_price,
+    COUNT(*) AS listings
+FROM airbnb_clean
+WHERE neighbourhood_group IS NOT NULL 
+    AND price IS NOT NULL
+    AND room_type IS NOT NULL
+GROUP BY neighbourhood_group, 
+    room_type
+ORDER BY avg_price DESC;
+
+
+/*
+Findings: Among brorough and room type combinations with at least 50 listings, 
+Manhattan Hotel Rooms had the highest average price at $681.87, based on 100 litings.
+*/
