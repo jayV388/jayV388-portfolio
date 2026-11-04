@@ -86,9 +86,9 @@ narrow range ($620 - $645) across all boroughs and room types. Manhattem
 
 
 /*
-Q3. Guest Activity by Neighborhood
+Q3. Guest Activity by Neighbourhood
 
-Which neighborhoods have the highest average reviews per month among neighborhoods with atleast 50 listings?
+Which neighbourhoods have the highest average reviews per month among neighbourhoods with atleast 50 listings?
 */
 
 SELECT
@@ -108,7 +108,7 @@ LIMIT 10;
 
 /*
 Findings: East Elmhurst in Queens had the highest average review activity at 4.06 reviews per month across 483
-litings, and Queens neighborhoods dominated most of the top positions.
+listings, and Queens neighbourhoods dominated most of the top positions.
 */
 
 
@@ -120,7 +120,7 @@ Do the highest-demand neighbourhoods (top 10 by reviews per month) allow shorter
 
 WITH top_demand AS (
 SELECT
-    neighbourhood_g roup,
+    neighbourhood_group,
     neighbourhood,
     COUNT(*) AS listings,
     ROUND(AVG(reviews_per_month), 2) AS avg_review_per_month
@@ -149,3 +149,67 @@ WHERE minimum_nights IS NOT NULL
     AND neighbourhood IS NOT NULL
     AND neighbourhood_group IS NOT NULL
 GROUP BY demand_group;
+
+/*
+Findings: Top 10 high-demand neighbourhoods had much stronger min-stay requirements, 
+averaging 3.12 nights vs 7.95 nights elsewhere, and 77.8% of listings allowed stays of two nights or less compared with 47.4%
+*/
+
+
+/*
+Q5. Host verification and guest response 
+
+Do verified hosts receive better ratings or more reviews per month than unconfirmed hosts?
+*/
+
+
+SELECT
+    host_identity_verified,
+    COUNT(*) AS listings,
+    ROUND(AVG(reviews_per_month), 2) AS avg_reviews_per_month,
+    ROUND(AVG(review_rate_number), 2) AS avg_rating
+FROM airbnb_clean
+WHERE host_identity_verified IS NOT NULL
+    AND reviews_per_month IS NOT NULL
+    AND review_rate_number IS NOT NULL
+GROUP BY host_identity_verified
+ORDER BY host_identity_verified;
+
+/*
+Findings: Verified and unconfirmed hosts received the same average activity at 1.16 reviews per month,
+While verified hosts only have a slightly higher average rating, 3.29 vs 3.25 for unconfirmed hosts, the difference is minimal.
+*/
+
+
+/*
+Q6. Availability by Borough
+
+Which boroughs have the least average annual availability, and what percentage of listings are available fewer than 60 days a year?
+*/
+
+SELECT
+    neighbourhood_group,
+    COUNT(*) AS listings,
+    ROUND(AVG(availability_365), 2) AS avg_days_available,
+    ROUND(100.0 * 
+        AVG(CASE
+                WHEN availability_365 < 60 THEN 1.0
+                ELSE 0
+            END
+        ),
+    1) AS pct_under_60
+FROM airbnb_clean
+WHERE neighbourhood_group IS NOT NULL
+    AND availability_365 IS NOT NULL
+GROUP BY neighbourhood_group
+ORDER BY avg_days_available ASC;
+
+/*
+Findings: Brooklyn (122.73 days, 45.2% under 60 days) and Manhattan (134.38 days, 42.1% under 60 days) have the least available listings,
+while Staten Island is most available (196.17 days, 19.4%).
+
+What does this mean? In Q3, Queens and Bronx had the highest monthly reviews. Low availability might be the result of hosts limiting their
+calenders rather than merely strong demand since availability_365 counts days that are open to book rather than days that are booked.availability_365
+Reivews per month (Q3) is the more reliable demand signal.
+*/
+
