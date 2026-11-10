@@ -213,3 +213,31 @@ calenders rather than merely strong demand since availability_365 counts days th
 Reivews per month (Q3) is the more reliable demand signal.
 */
 
+
+/*
+Q7. Cancellation policy and guest response
+
+Do listings with more flexible cancellation policies receive more reviews per month and better ratings?
+*/
+
+SELECT
+    cancellation_policy,
+    COUNT(*) AS listings,
+    ROUND(AVG(reviews_per_month),2) AS avg_reviews_per_month,
+    ROUND(AVG(review_rate_number),2) AS avg_rating
+FROM airbnb_clean
+WHERE cancellation_policy IS NOT NULL
+    AND reviews_per_month IS NOT NULL
+    AND review_rate_number IS NOT NULL
+GROUP BY cancellation_policy
+HAVING COUNT(*) >= 50
+ORDER BY avg_reviews_per_month DESC;
+
+/*
+Findings: Listings are split almnost evenly across flexible, moderate, and strict policies (aroung 34k each) and perform the same: 1.15 - 1.17
+reviews per month and 3,28 rating for all three. Listings with no reviews are excluded.
+
+What does this mean?: cancellation policy does not affect guest demand or satisfaction in this dataset,
+so hosts can choose a stricter policy wihtout losing bookings.
+
+*/
