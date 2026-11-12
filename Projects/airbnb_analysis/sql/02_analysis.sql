@@ -22,8 +22,8 @@ FROM airbnb_clean;
 /*
 Q1. Host Portfolio Size Analysis
 
-What is the distribution of Airbnb supply among stated host portfolio sizes, 
-and what are the the differences in average price and review ratings between those groups?
+What is the distribution of Airbnb supply among host portfolio sizes, 
+and what are the differences in average price and review ratings between those groups?
 
 */
 
@@ -33,6 +33,7 @@ SELECT
         WHEN calculated_host_listings_count BETWEEN 2 AND 5 THEN '2-5 listings'
         WHEN calculated_host_listings_count BETWEEN 6 AND 20 THEN '6-20 listings'
         WHEN calculated_host_listings_count > 20 THEN '21+ listings'
+        ELSE 'Other'
     END AS portfolio_size,
 
     COUNT(*) AS listings,
@@ -46,23 +47,28 @@ SELECT
         1
     ) AS pct_of_listings,
     ROUND(AVG(price), 2) AS avg_price,
-    ROUND(AVG(review_rate_number), 1) AS avg_rating
+    ROUND(AVG(review_rate_number), 2) AS avg_rating
 
 FROM airbnb_clean
 WHERE calculated_host_listings_count IS NOT NULL
 GROUP BY portfolio_size
 ORDER BY MIN(calculated_host_listings_count);
 
+
+
 /*
-Findings: While average rates are about the same across the same portfolio sizes ($621-$627), the supply of Airbnb
+Findings: While average prices are about the same across portfolio sizes ($621-$627), the supply of Airbnb
 is concentrated among smaller hosts, with 1 listing (57.5%) and 2-5 listings (30.3%) making up 88% of the total.
+
+What does this mean?: The Airbnb market here is driven mainly by individual and small hosts, and portfolio size does not meaningfully 
+affect price or guest ratings.
 */
 
 
 /*
 Q2. Price by Borough and Room Type
 
-Which boroughs and room types combinations have the highest average price, and which have the lowest?
+Which borough and room type combinations have the highest average price, and which have the lowest?
 */
 
 SELECT
@@ -80,15 +86,18 @@ HAVING COUNT(*) >= 50
 ORDER BY avg_price DESC;
 
 /*
-Findings: Once groups with fewer than 50 listings are removed, average prices fall in a
-narrow range ($620 - $645) across all boroughs and room types. Manhattem
+Findings: Once groups with fewerross boroughs and room types. The only exception is Manhattan hotel rooms ($682, 100 listings).
+Manhattan entire homes ($623) are not priced higher than Bronx private rooms ($634). 
+
+What does this mean?: Borough and room type do not explain price in this dataset. This is unlike the real NYC market and suggests 
+the price column may be synthetic, so it is noted as a data limitation. 
 */
 
 
 /*
 Q3. Guest Activity by Neighbourhood
 
-Which neighbourhoods have the highest average reviews per month among neighbourhoods with atleast 50 listings?
+Which neighbourhoods have the highest average reviews per month among neighbourhoods with at least 50 listings?
 */
 
 SELECT
@@ -107,36 +116,39 @@ ORDER BY avg_review_per_month DESC
 LIMIT 10;
 
 /*
-Findings: East Elmhurst in Queens had the highest average review activity at 4.06 reviews per month across 483
-listings, and Queens neighbourhoods dominated most of the top positions.
+Findings: East Elmhurst in Queens had the highest guest activity at 4.06 reviews per month across 483 listings. Queens holds 7 of the top 10 neighbourhoods and the Bronx holds the
+other 3; Manhattan and Brooklyn do not appear. Several top neighbourhoods sit near LaGuardia (East Elmhurst) or JFK (Springfield Gardens, Jamaica, South Ozone Park,
+St. Albans). Listings with no reviews are excluded.
+
+What does this mean?: Guest demand is highest in outer-borough, airport-adjacent areas. One possible reason is short airport and layover stays, but this is a hypothesis this
+dataset cannot confirm on its own (see Q4).
 */
 
 
 /*
-Q4. Stay length in high-demand neighbourhood
+Q4. Stay length in high-demand neighbourhoods
 
 Do the highest-demand neighbourhoods (top 10 by reviews per month) allow shorter minimum stays than all other neighbourhoods?
 */
 
 WITH top_demand AS (
-SELECT
-    neighbourhood_group,
-    neighbourhood,
-    COUNT(*) AS listings,
-    ROUND(AVG(reviews_per_month), 2) AS avg_review_per_month
-FROM airbnb_clean
-WHERE neighbourhood IS NOT NULL
-    AND neighbourhood_group IS NOT NULL
-    AND reviews_per_month IS NOT NULL
-GROUP BY neighbourhood_group,
-    neighbourhood
-HAVING COUNT(*) >= 50
-ORDER BY avg_review_per_month DESC
-LIMIT 10
+    SELECT
+        neighbourhood_group,
+        neighbourhood,
+        COUNT(*) AS listings,
+        ROUND(AVG(reviews_per_month), 2) AS avg_review_per_month
+    FROM airbnb_clean
+    WHERE neighbourhood IS NOT NULL
+        AND neighbourhood_group IS NOT NULL
+        AND reviews_per_month IS NOT NULL
+    GROUP BY neighbourhood_group,
+        neighbourhood
+    HAVING COUNT(*) >= 50
+    ORDER BY avg_review_per_month DESC
+    LIMIT 10
 )
 SELECT
     CASE
-    
         WHEN neighbourhood IN (SELECT neighbourhood FROM top_demand)
             THEN 'Top 10 demand'
         ELSE 'All other'
@@ -151,8 +163,11 @@ WHERE minimum_nights IS NOT NULL
 GROUP BY demand_group;
 
 /*
-Findings: Top 10 high-demand neighbourhoods had much stronger min-stay requirements, 
-averaging 3.12 nights vs 7.95 nights elsewhere, and 77.8% of listings allowed stays of two nights or less compared with 47.4%
+Findings: Top 10 high-demand neighbourhoods had much stronger min-stay requirements, averaging 3.12 nights vs 7.95 nights elsewhere, and 77.8% of listings allowed stays 
+of two nights or less, compared with 47.4% for all other negihbourhoods.
+
+What does this mean?: High-demand neighbourhoods make short stays east to book. This supports the hypothesis from Q3 that short airport and layout
+stays help drive demand om these areas, through it does not prove it.
 */
 
 
@@ -177,7 +192,7 @@ ORDER BY host_identity_verified;
 
 /*
 Findings: Verified and unconfirmed hosts received the same average activity at 1.16 reviews per month,
-While verified hosts only have a slightly higher average rating, 3.29 vs 3.25 for unconfirmed hosts, the difference is minimal.
+while verified hosts only have a slightly higher average rating, 3.29 vs 3.27 for unconfirmed hosts, the difference is minimal.
 */
 
 
@@ -208,9 +223,8 @@ ORDER BY avg_days_available ASC;
 Findings: Brooklyn (122.73 days, 45.2% under 60 days) and Manhattan (134.38 days, 42.1% under 60 days) have the least available listings,
 while Staten Island is most available (196.17 days, 19.4%).
 
-What does this mean? In Q3, Queens and Bronx had the highest monthly reviews. Low availability might be the result of hosts limiting their
-calenders rather than merely strong demand since availability_365 counts days that are open to book rather than days that are booked.availability_365
-Reivews per month (Q3) is the more reliable demand signal.
+What does this mean?: In Q3, Queens and the Bronx had the highest reviews per month. Low availability may reflect hosts limiting their calendars rather than strong demand, since
+availability_365 counts days that are open to book rather than days that are booked. Reviews per month (Q3) is the more reliable demand signal.
 */
 
 
@@ -230,14 +244,13 @@ WHERE cancellation_policy IS NOT NULL
     AND reviews_per_month IS NOT NULL
     AND review_rate_number IS NOT NULL
 GROUP BY cancellation_policy
-HAVING COUNT(*) >= 50
-ORDER BY avg_reviews_per_month DESC;
+ORDER BY cancellation_policy;
 
 /*
-Findings: Listings are split almnost evenly across flexible, moderate, and strict policies (aroung 34k each) and perform the same: 1.15 - 1.17
-reviews per month and 3,28 rating for all three. Listings with no reviews are excluded.
+Findings: Listings are split almost evenly across flexible, moderate, and strict policies (aroung 34k each) and perform the same: 1.15 - 1.17
+reviews per month and 3.28 rating for all three. Listings with no reviews are excluded.
 
 What does this mean?: cancellation policy does not affect guest demand or satisfaction in this dataset,
-so hosts can choose a stricter policy wihtout losing bookings.
+so hosts can choose a stricter policy without losing bookings.
 
 */
