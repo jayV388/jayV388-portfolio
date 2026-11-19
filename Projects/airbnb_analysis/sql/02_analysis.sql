@@ -57,11 +57,10 @@ ORDER BY MIN(calculated_host_listings_count);
 
 
 /*
-Findings: While average prices are about the same across portfolio sizes ($621-$627), the supply of Airbnb
-is concentrated among smaller hosts, with 1 listing (57.5%) and 2-5 listings (30.3%) making up 88% of the total.
+Findings: Supply is concentrated among smaller hosts. Hosts with 1 listing make up 62.0% of listings and hosts with 2-5 listings make up 26.0%, together 88% of the total.
+Average prices are nearly the same across all portfolio sizes ($621-$627). Ratings rise slightly with portfolio size (3.24 for single-listing hosts to 3.40 for 21+), but the difference is small.
 
-What does this mean?: The Airbnb market here is driven mainly by individual and small hosts, and portfolio size does not meaningfully 
-affect price or guest ratings.
+What does this mean?: The Airbnb market here is driven mainly by individual and small hosts, and portfolio size does not meaningfully affect price or guest ratings.
 */
 
 
