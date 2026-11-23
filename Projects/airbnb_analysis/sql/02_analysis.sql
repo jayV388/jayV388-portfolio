@@ -111,7 +111,7 @@ WHERE neighbourhood IS NOT NULL
 GROUP BY neighbourhood_group,
     neighbourhood
 HAVING COUNT(*) >= 50
-ORDER BY avg_review_per_month DESC
+ORDER BY AVG(reviews_per_month) DESC
 LIMIT 10;
 
 /*
@@ -143,7 +143,7 @@ WITH top_demand AS (
     GROUP BY neighbourhood_group,
         neighbourhood
     HAVING COUNT(*) >= 50
-    ORDER BY avg_review_per_month DESC
+    ORDER BY AVG(reviews_per_month) DESC
     LIMIT 10
 )
 SELECT
