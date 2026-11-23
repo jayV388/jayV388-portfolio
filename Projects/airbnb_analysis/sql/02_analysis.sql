@@ -115,8 +115,8 @@ ORDER BY AVG(reviews_per_month) DESC
 LIMIT 10;
 
 /*
-Findings: East Elmhurst in Queens had the highest guest activity at 4.06 reviews per month across 483 listings. Queens holds 7 of the top 10 neighbourhoods and the Bronx holds the
-other 3; Manhattan and Brooklyn do not appear. Several top neighbourhoods sit near LaGuardia (East Elmhurst) or JFK (Springfield Gardens, Jamaica, South Ozone Park,
+Findings: East Elmhurst in Queens had the highest guest activity at 4.06 reviews per month across 483 listings. Queens holds 8 of the top 10 neighbourhoods and the Bronx holds the
+other 2; Manhattan and Brooklyn do not appear. Several top neighbourhoods sit near LaGuardia (East Elmhurst) or JFK (Springfield Gardens, Jamaica, South Ozone Park,
 St. Albans). Listings with no reviews are excluded.
 
 What does this mean?: Guest demand is highest in outer-borough, airport-adjacent areas. One possible reason is short airport and layover stays, but this is a hypothesis this
